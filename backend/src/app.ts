@@ -1,29 +1,31 @@
 import express from 'express';
 import cors from 'cors';
-import dotenv from 'dotenv';
-
-dotenv.config();
+import { env } from './config/env';
+import apiRoutes from './routes';
+import { errorHandler, notFoundHandler } from './middleware/error.middleware';
 
 const app = express();
-const PORT = process.env.PORT || 4000;
 
 const allowedOrigins = [
   'http://localhost:3000',
-  process.env.FRONTEND_URL,
+  env.frontendUrl,
 ].filter(Boolean) as string[];
 
-app.use(cors({
-  origin: allowedOrigins,
-  credentials: true,
-}));
+app.use(
+  cors({
+    origin: allowedOrigins,
+    credentials: true,
+  }),
+);
 app.use(express.json());
 
 app.get('/health', (_req, res) => {
   res.json({ status: 'ok', message: 'Task Tracker API is running' });
 });
 
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+app.use('/api', apiRoutes);
+
+app.use(notFoundHandler);
+app.use(errorHandler);
 
 export default app;

@@ -1,0 +1,110 @@
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.field label {
+  font-size: 0.82rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: rgba(226, 232, 240, 0.72);
+}
+
+.field input {
+  width: 100%;
+  padding: 0.9rem 1rem;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(2, 6, 23, 0.55);
+  color: #f8fafc;
+  font: inherit;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    background 0.2s ease;
+}
+
+.field input::placeholder {
+  color: rgba(148, 163, 184, 0.75);
+}
+
+.field input:focus {
+  outline: none;
+  border-color: rgba(129, 140, 248, 0.75);
+  box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.18);
+  background: rgba(2, 6, 23, 0.75);
+}
+
+.fieldError {
+  font-size: 0.82rem;
+  color: #fca5a5;
+}
+
+.alert {
+  padding: 0.85rem 1rem;
+  border-radius: 14px;
+  background: rgba(239, 68, 68, 0.12);
+  border: 1px solid rgba(248, 113, 113, 0.25);
+  color: #fecaca;
+  font-size: 0.92rem;
+  line-height: 1.5;
+}
+
+.submitButton {
+  margin-top: 0.35rem;
+  width: 100%;
+  padding: 0.95rem 1rem;
+  border: none;
+  border-radius: 14px;
+  font: inherit;
+  font-weight: 700;
+  color: #f8fafc;
+  cursor: pointer;
+  background: linear-gradient(135deg, #6366f1 0%, #2563eb 55%, #0ea5e9 100%);
+  box-shadow: 0 12px 30px rgba(37, 99, 235, 0.35);
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    opacity 0.2s ease;
+}
+
+.submitButton:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 16px 36px rgba(37, 99, 235, 0.42);
+}
+
+.submitButton:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.spinner {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.spinner::after {
+  content: "";
+  width: 14px;
+  height: 14px;
+  border-radius: 999px;
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  border-top-color: white;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

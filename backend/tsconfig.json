@@ -1,20 +1,19 @@
+// tsconfig.json  (now the default — used by editor AND by ts-jest)
 {
   "compilerOptions": {
     "target": "ES2020",
     "module": "Node16",
     "moduleResolution": "node16",
     "lib": ["ES2020"],
-    "outDir": "./dist",
-    "rootDir": "./src",
+    "rootDir": "./",
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
-    "declaration": true,
-    "declarationMap": true,
-    "sourceMap": true
+    "isolatedModules": true,
+    "types": ["node", "jest"]
   },
-  "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist", "tests"]
+  "include": ["src/**/*", "tests/**/*", "prisma/**/*.ts"],
+  "exclude": ["node_modules", "dist"]
 }
