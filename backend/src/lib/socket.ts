@@ -18,6 +18,8 @@ export function initSocket(httpServer: HttpServer): Server {
     env.frontendUrl,
   ].filter(Boolean) as string[];
 
+  console.log('[socket] allowed origins:', allowedOrigins);
+
   io = new Server(httpServer, {
     cors: {
       origin: allowedOrigins,
@@ -29,6 +31,7 @@ export function initSocket(httpServer: HttpServer): Server {
     const token = socket.handshake.auth.token as string | undefined;
 
     if (!token) {
+      console.warn(`[socket] rejected ${socket.id}: no token provided`);
       next(new Error('Authentication required'));
       return;
     }
@@ -41,7 +44,11 @@ export function initSocket(httpServer: HttpServer): Server {
         role: payload.role,
       };
       next();
-    } catch {
+    } catch (err) {
+      console.warn(
+        `[socket] rejected ${socket.id}: invalid/expired token`,
+        err instanceof Error ? err.message : err,
+      );
       next(new Error('Invalid or expired token'));
     }
   });
@@ -49,14 +56,38 @@ export function initSocket(httpServer: HttpServer): Server {
   io.on('connection', (socket) => {
     const user = socket.data.user as {
       userId: string;
+      email: string;
       role: Role;
     };
+
+    console.log(
+      `[socket] connected: ${socket.id} (user: ${user.userId}, role: ${user.role})`,
+    );
 
     socket.join(`user:${user.userId}`);
 
     if (user.role === Role.ADMIN) {
       socket.join('admin');
     }
+
+    // Log every room this socket ends up in, useful for debugging emits
+    console.log(`[socket] ${socket.id} rooms:`, Array.from(socket.rooms));
+
+    socket.on('disconnect', (reason) => {
+      console.log(`[socket] disconnected: ${socket.id} (reason: ${reason})`);
+    });
+
+    socket.on('error', (err) => {
+      console.error(`[socket] error on ${socket.id}:`, err);
+    });
+  });
+
+  io.engine.on('connection_error', (err) => {
+    console.error('[socket] engine connection_error:', {
+      code: err.code,
+      message: err.message,
+      context: err.context,
+    });
   });
 
   return io;
@@ -74,8 +105,13 @@ export function emitTaskEvent(
   task: TaskWithOwner,
 ): void {
   if (!io) {
+    console.warn(`[socket] emitTaskEvent('${event}') skipped: io not initialized`);
     return;
   }
+
+  console.log(
+    `[socket] emitting '${event}' to user:${task.ownerId} and admin room`,
+  );
 
   io.to(`user:${task.ownerId}`).emit(event, { task });
   io.to('admin').emit(event, { task });

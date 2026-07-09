@@ -31,11 +31,7 @@ function canViewTask(task: Task, userId: string, isAdmin: boolean) {
 export function TaskDashboard() {
   const { user } = useAuth();
 
-  if (!user) {
-    return null;
-  }
-
-  const isAdmin = user.role === "ADMIN";
+  const isAdmin = user?.role === "ADMIN";
 
   const [tasks, setTasks] = useState<Task[]>([]);
   const [pagination, setPagination] = useState<TaskPagination>({
@@ -85,7 +81,7 @@ export function TaskDashboard() {
       }
 
       const { task } = payload;
-      const visible = canViewTask(task, user.id, isAdmin);
+      const visible = canViewTask(task, user.id, isAdmin ?? false);
 
       if (event === "task:created") {
         if (!visible) {
@@ -140,6 +136,11 @@ export function TaskDashboard() {
     enabled: Boolean(user),
     onEvent: handleSocketEvent,
   });
+
+  // ✅ early return now happens AFTER every hook has been called
+  if (!user) {
+    return null;
+  }
 
   const handleCreateTask = async (payload: CreateTaskPayload) => {
     setCreating(true);
@@ -212,7 +213,7 @@ export function TaskDashboard() {
 
           <TaskFilters
             filters={filters}
-            isAdmin={isAdmin}
+            isAdmin={Boolean(isAdmin)}
             onChange={setFilters}
           />
 
@@ -223,7 +224,7 @@ export function TaskDashboard() {
           ) : (
             <TaskList
               tasks={tasks}
-              isAdmin={isAdmin}
+              isAdmin={Boolean(isAdmin)}
               currentUserId={user.id}
               onEdit={setEditingTask}
               onDelete={handleDeleteTask}

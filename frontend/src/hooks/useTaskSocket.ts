@@ -19,6 +19,7 @@ export function useTaskSocket({ enabled, onEvent }: UseTaskSocketOptions) {
 
   useEffect(() => {
     if (!enabled) {
+      console.log("[socket] hook disabled, skipping connection");
       return;
     }
 
@@ -28,12 +29,27 @@ export function useTaskSocket({ enabled, onEvent }: UseTaskSocketOptions) {
         : null;
 
     if (!token) {
+      console.warn("[socket] no token found in localStorage, skipping connection");
       return;
     }
+
+    console.log("[socket] connecting to", SOCKET_URL);
 
     const socket: Socket = io(SOCKET_URL, {
       auth: { token },
       transports: ["websocket", "polling"],
+    });
+
+    socket.on("connect", () => {
+      console.log("[socket] connected:", socket.id, "transport:", socket.io.engine.transport.name);
+    });
+
+    socket.on("connect_error", (err) => {
+      console.error("[socket] connect_error:", err.message);
+    });
+
+    socket.on("disconnect", (reason) => {
+      console.log("[socket] disconnected:", reason);
     });
 
     const events: TaskSocketEvent[] = [
@@ -44,12 +60,17 @@ export function useTaskSocket({ enabled, onEvent }: UseTaskSocketOptions) {
 
     events.forEach((event) => {
       socket.on(event, (payload: TaskSocketPayload) => {
+        console.log(`[socket] received '${event}'`, payload);
         onEventRef.current(event, payload);
       });
     });
 
     return () => {
+      console.log("[socket] cleaning up connection");
       events.forEach((event) => socket.off(event));
+      socket.off("connect");
+      socket.off("connect_error");
+      socket.off("disconnect");
       socket.disconnect();
     };
   }, [enabled]);
