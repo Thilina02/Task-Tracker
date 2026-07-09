@@ -1,10 +1,19 @@
 # Task Tracker
 
 Full-stack Task Tracker application with role-based access control, real-time updates, automated tests, and CI.
+   
+## Live Deployment
+
+| Service | URL |
+|---------|-----|
+| Frontend (Vercel) | https://task-tracker-newnop-assignment01.vercel.app/ |
+| Backend API (Railway) | https://task-tracker-backend-production-799d.up.railway.app/ |
+| Health Check | https://task-tracker-backend-production-799d.up.railway.app/health |
+
+> Note: The backend is hosted on Railway (Hobby plan), which runs 24/7 without cold starts.
 
 ## Project Structure
-
-```
+ 
 Task-Tracker/
 ├── backend/                   # Express + Prisma REST API + Socket.io
 ├── frontend/                  # Next.js UI
@@ -12,17 +21,28 @@ Task-Tracker/
 ├── docker-compose.yml         # Local PostgreSQL
 ├── render.yaml                # Render deployment blueprint
 └── .github/workflows/ci.yml   # CI pipeline
-```
+ 
 
-## Prerequisites
+## Tech Stack
+
+- **Backend:** Node.js, Express, Prisma ORM, PostgreSQL, Socket.io, JWT, Zod
+- **Frontend:** Next.js, React
+- **Testing:** Supertest (API tests)
+- **CI/CD:** GitHub Actions
+- **Hosting:** Railway (backend), Vercel (frontend)
+ 
+
+## Setup Instructions
+
+### Prerequisites
 
 - Node.js 20+
 - npm
 - Docker (recommended for local PostgreSQL)
 
-## Environment Configuration
+### Environment Configuration
 
-### Backend (`backend/.env`)
+#### Backend (`backend/.env`)
 
 Copy the example file and adjust values:
 
@@ -41,7 +61,7 @@ cp .env.example .env
 | `ADMIN_EMAIL` | Optional seed admin email |
 | `ADMIN_PASSWORD` | Optional seed admin password |
 
-### Frontend (`frontend/.env.local`)
+#### Frontend (`frontend/.env.local`)
 
 ```bash
 cd frontend
@@ -52,7 +72,7 @@ cp .env.example .env.local
 |----------|-------------|
 | `NEXT_PUBLIC_API_URL` | Backend API URL (default `http://localhost:4000`) |
 
-## Database Setup
+### Database Setup
 
 Start PostgreSQL locally:
 
@@ -77,7 +97,7 @@ Default admin credentials (override via `ADMIN_EMAIL` / `ADMIN_PASSWORD`):
 
 Regular users register through the UI/API and receive the `USER` role by default.
 
-## Backend Setup
+### Backend Setup
 
 ```bash
 cd backend
@@ -90,7 +110,7 @@ API runs at `http://localhost:4000`.
 
 Health check: `GET /health`
 
-## Frontend Setup
+### Frontend Setup
 
 ```bash
 cd frontend
@@ -100,7 +120,11 @@ npm run dev
 
 UI runs at `http://localhost:3000`.
 
-## Architecture Overview
+---
+
+## Design Decisions
+
+### Architecture Overview
 
 ```mermaid
 flowchart LR
@@ -110,6 +134,8 @@ flowchart LR
   Prisma --> DB[(PostgreSQL)]
 ```
 
+The frontend (Next.js) communicates with the backend (Express) over a REST API secured with JWT bearer tokens, and maintains a parallel Socket.io connection (authenticated with the same JWT) for real-time task updates. The backend uses Prisma ORM to talk to a PostgreSQL database.
+
 ### Key Implementation Decisions
 
 - **Authentication:** JWT bearer tokens issued on register/login; role stored in token payload.
@@ -118,7 +144,7 @@ flowchart LR
 - **Real-time updates:** Socket.io broadcasts task create/update/delete events to the task owner room and admin room.
 - **Testing:** Supertest API tests with mocked services to keep CI fast and database-free.
 
-## API Endpoints
+### API Endpoints
 
 | Method | Endpoint | Auth | Description |
 |--------|----------|------|-------------|
@@ -132,14 +158,14 @@ flowchart LR
 | PATCH | `/api/tasks/:id` | Yes | Update task |
 | DELETE | `/api/tasks/:id` | Yes | Delete task |
 
-### Task List Query Parameters
+#### Task List Query Parameters
 
 - `page` (default `1`)
 - `limit` (default `10`, max `100`)
 - `status` (`TODO`, `IN_PROGRESS`, `DONE`)
 - `ownerId` (admin only)
 
-## Postman Collection
+### Postman Collection
 
 Import these files from the `postman/` directory:
 
@@ -151,7 +177,7 @@ Workflow:
 1. Run **Register** or **Login** (token is saved automatically).
 2. Use task endpoints with the saved bearer token.
 
-## Testing
+### Testing
 
 ```bash
 # Backend
@@ -167,12 +193,16 @@ npm run build
 
 CI runs on pushes and pull requests to `main`/`master`.
 
+---
+
 ## Assumptions
 
 - Roles are assigned at registration time (`USER` by default) with a seeded admin account for review.
 - Task ownership is set to the authenticated creator; admins can manage any task.
 - Real-time updates are delivered via Socket.io using JWT authentication in the socket handshake.
 - Due dates are stored in UTC and displayed in the user's local timezone in the UI.
+
+---
 
 ## Future Improvements
 
@@ -183,28 +213,28 @@ CI runs on pushes and pull requests to `main`/`master`.
 - Database migrations committed to repo instead of `db push`
 - Rate limiting and audit logging
 
+---
+
 ## Deployment Notes
 
-### Backend on Render.com
-
-Use the `render.yaml` blueprint or create a **Web Service** with:
+### Backend on Railway
 
 - **Root directory:** `backend`
 - **Build command:** `npm install && npx prisma generate && npx prisma db push && npm run build`
 - **Start command:** `node dist/index.js`
 
-Set these environment variables in the Render dashboard:
+Environment variables set in Railway:
 
 | Variable | Example | Required |
 |----------|---------|----------|
 | `NODE_ENV` | `production` | Yes |
-| `PORT` | `10000` | Yes (Render sets this automatically) |
-| `DATABASE_URL` | `postgresql://...` | Yes (Render PostgreSQL or external DB) |
+| `PORT` | Set automatically by Railway | Yes |
+| `DATABASE_URL` | `postgresql://...` | Yes |
 | `JWT_SECRET` | long random string | Yes |
 | `JWT_EXPIRES_IN` | `7d` | Optional |
-| `FRONTEND_URL` | `https://your-app.vercel.app` | Yes (CORS + Socket.io) |
+| `FRONTEND_URL` | `https://task-tracker-newnop-assignment01.vercel.app` | Yes (CORS + Socket.io) |
 
-After the first deploy, run the seed once (Render Shell or locally against production DB):
+After the first deploy, run the seed once (Railway Shell or locally against production DB):
 
 ```bash
 npm run db:seed
@@ -214,27 +244,19 @@ This creates the default admin account (`ADMIN_EMAIL` / `ADMIN_PASSWORD`).
 
 ### Frontend on Vercel
 
-Import the repo and set:
-
 - **Root directory:** `frontend`
 - **Framework preset:** Next.js
 
 | Variable | Example | Required |
 |----------|---------|----------|
-| `NEXT_PUBLIC_API_URL` | `https://task-tracker-backend.onrender.com` | Yes |
+| `NEXT_PUBLIC_API_URL` | `https://task-tracker-backend-production-799d.up.railway.app` | Yes |
 
-Use your Render backend URL (no trailing slash). This variable is used for both REST API calls and Socket.io connections.
+This variable is used for both REST API calls and Socket.io connections.
 
-### Deployment checklist
+### Deployment Checklist
 
-1. Deploy backend on Render and confirm `GET /health` returns OK.
-2. Set `FRONTEND_URL` on Render to your Vercel URL.
-3. Deploy frontend on Vercel with `NEXT_PUBLIC_API_URL` pointing to Render.
+1. Deploy backend on Railway and confirm `GET /health` returns OK.
+2. Set `FRONTEND_URL` on Railway to the Vercel URL.
+3. Deploy frontend on Vercel with `NEXT_PUBLIC_API_URL` pointing to the Railway backend.
 4. Register a user or log in with the seeded admin account.
 5. Test real-time updates by opening the dashboard in two browser tabs.
-
-- Render free tier may cold-start after idle periods (~60 seconds)
-
-## License
-
-MIT
