@@ -8,6 +8,6 @@ assertRequiredEnv();
 const httpServer = createServer(app);
 initSocket(httpServer);
 
-httpServer.listen(env.port, () => {
+httpServer.listen(env.port, '0.0.0.0', () => {
   console.log(`Server running on port ${env.port}`);
 });
