@@ -1,7 +1,7 @@
-import { PrismaClient, Role } from '@prisma/client';
+import 'dotenv/config';
+import { Role } from '@prisma/client';
+import { prisma } from '../src/lib/prisma'; 
 import { hashPassword } from '../src/utils/password';
-
-const prisma = new PrismaClient();
 
 async function main() {
   const adminEmail = process.env.ADMIN_EMAIL || 'admin@tasktracker.com';
